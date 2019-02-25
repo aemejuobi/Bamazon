@@ -16,52 +16,86 @@ connection.connect(function(err, data){
         return;
     }
     console.log("Database is connected as id: " + connection.threadId);
+    viewProducts();
+    idOfDesiredProduct();
+    howManyUnits();
 });
 
-// Query that selects all itemss in the product table
-connection.query("select * from products", function(err, results){
+// Function that selects all items in the product table to view
+function viewProducts(){
+    connection.query("select * from products", function(err, results){
     
-    if(err){
-        throw err;
-    }
+        for(var i=0; i < results.length; i++){
+            console.log(`
+                Item ID: ${results[i].id}
+                Product Name: ${results[i].productName}
+                Department Name: ${results[i].departmentName}
+                Price: ${results[i].price}
+                In Stock: ${results[i].stockQuantity}
+            `);
+        }
+    
+    });
+}
 
-    for(var i=0; i < results.length; i++){
-        console.log(`
-            Item ID: ${results[i].id}
-            Product Name: ${results[i].productName}
-            Department Name: ${results[i].departmentName}
-            Price: ${results[i].price}
-            In Stock: ${results[i].stockQuantity}
-        `);
-    }
-
-});
-
-inquirer
+// Function that asks the id of desired product
+function idOfDesiredProduct(){
+    inquirer
     .prompt([
         {
             type: "list",
             message: "What is the ID of your desired product?",
             choices: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
             name: "idNumber"
-        },
-        // {
-        //     type: "input",
-        //     message: "How many units would you like to buy?",
-        //     name: "unitNumber"
-        // }
+        }
     ])
     .then(function(inquirerResponse){
         
-        connection.query("select * from products", function(results){
-            console.log(results[parseInt(inquirerResponse.idNumber)].productName);
+        connection.query("select * from products", function(err, results){
+            for(var i=0; i<results.length; i++){
+                if(parseInt(inquirerResponse.idNumber) === results[i].id){
+                    console.log(`
+                        Product Name: ${results[i].productName}
+                        Department Name: ${results[i].departmentName}
+                        Price: ${results[i].price}
+                        In Stock: ${results[i].stockQuantity}
+                    `);
+                }
+            }
         });
     });
+}
 
-
-
-
-
+function howManyUnits(){
+    inquirer
+    .prompt([
+        {
+            type: "input",
+            message: "How many units would you like to buy?",
+            name: "unitNumber"
+        }
+    ])
+    .then(function(inquirerResponse){
+        connection.query("select * from products", function(err, results){
+            var totalAmount = 0;
+            
+            for(var i=0; i<results.length; i++){
+                var remainingQuantity = 0;
+                if(parseInt(inquirerResponse.unitNumber) === results[i].stockQuantity){
+                    remainingQuantity -= results[i].stockQuantity;
+                    console.log(`Enjoy your ${results[i].productName}!`);
+                    console.log(`
+                        Product Name: ${results[i].productName}
+                        Department Name: ${results[i].departmentName}
+                        Price: ${results[i].price}
+                        In Stock: ${results[i].stockQuantity}
+                    `);
+                }
+            }
+            
+        });
+    }); 
+}
 
 
     
